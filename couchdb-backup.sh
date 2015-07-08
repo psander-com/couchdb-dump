@@ -20,7 +20,7 @@
 
 
 ###################### CODE STARTS HERE ###################
-scriptversionnumber="1.1.0"
+scriptversionnumber="1.1.1"
 
 ##START: FUNCTIONS
 usage(){
@@ -69,7 +69,7 @@ checkdiskspace(){
     fi
 
     stripdir=${location%/*}
-    KBavail=$(df -P -BK ${stripdir} | tail -n 1 | awk '{print$4}' | sed -e 's/K$//')
+    KBavail=$(df -P -k ${stripdir} | tail -n 1 | awk '{print$4}' | sed -e 's/K$//')
 
     if [ $KBavail -ge $KBrequired ]; then
         return 0
@@ -221,6 +221,12 @@ if [ "`echo $url | grep -ic "^https://"`" = "1" ]; then
 	curlopt="-k"
 fi
 
+## Check for curl
+if [ "x`which curl`" = "x" ]; then
+    echo "... ERROR: This script requires 'curl' to be present."
+    exit 1
+fi
+
 ### If user selected BACKUP, run the following code:
 if [ $backup = true ]&&[ $restore = false ]; then
     #################################################################
@@ -233,7 +239,7 @@ if [ $backup = true ]&&[ $restore = false ]; then
     fi
 
     # Grab our data from couchdb
-    curl ${curlopt} -X GET "$url/$db_name/_all_docs?include_docs=true" -o ${file_name}
+    curl ${curlopt} -X GET "$url/$db_name/_all_docs?include_docs=true&attachments=true" -o ${file_name}
     # Check for curl errors
     if [ ! $? = 0 ]; then
         echo "... ERROR: Curl encountered an issue whilst dumping the database."
